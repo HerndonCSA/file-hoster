@@ -1,16 +1,28 @@
+import mimetypes
+
 from sanic import Sanic
-from sanic.response import json, text, redirect
-from sanic.response import html as html_response
-import base64
-import os
+from sanic import response
 import aiofiles
+import os
 
 app = Sanic(__name__)
 
-# dictionary to store uploaded files
-files = {}
+# create an in-memory cache to store the file data
+cache = {}
 
-@app.route("/", methods=["POST"])
+
+async def get_file_data(file_path):
+    # check if the file data is already in the cache
+    if file_path in cache:
+        return cache[file_path]
+    # if the file data is not in the cache, read it from the file and store it in the cache
+    async with aiofiles.open(file_path, "rb") as f:
+        data = await f.read()
+        cache[file_path] = data
+        return data
+
+
+@app.route("/upload", methods=["POST"])
 async def upload_file(request):
     # get the file from the request
     file = request.files.get("file")
@@ -24,55 +36,51 @@ async def upload_file(request):
     async with aiofiles.open(file_path, "wb") as f:
         await f.write(file.body)
 
-    # redirect to the GET / route
-    return redirect("/")
+    # return a JSON response indicating that the file was successfully uploaded
+    return response.json({"success": True})
 
-@app.route("/", methods=["GET"])
-async def browse_files(request):
+
+@app.route("/view/<file_name>")
+async def view_file(request, file_name):
+    # check if the "embed" query parameter is set to "true"
+    embed = request.args.get("embed", "false") == "true"
+    # get the file from the /files directory
+    file_path = os.path.join("files", file_name)
+    # get the file data from the cache or from the file
+    file_data = await get_file_data(file_path)
+    # determine the MIME type of the file based on its extension
+    content_type, _ = mimetypes.guess_type(file_path)
+    # set the Content-Type header to the determined MIME type
+    headers = {"Content-Type": content_type}
+    # if the "embed" query parameter is set to "true", return the file data as HTML with meta tags
+    if embed:
+        image_url = request.url.replace("?embed=true", "")
+        # to embed on discord and twitter, send html response with meta tags
+        # to link to the file, use the /view/<file_name> endpoint without the "embed" query parameter
+        return response.html(
+            f"""
+            <html>
+                <head>
+                    <meta property="og:title" content="{image_url}" />
+                    <meta name="twitter:image:src" content="{image_url}" />
+                </head>
+                <body>
+                    <img src="{image_url}" />
+                </body>
+            </html>
+            """
+        )
+    # if the "embed" query parameter is not set or is set to "false", return the file data as a response
+    return response.raw(file_data, headers=headers)
+
+
+@app.route("/files")
+async def list_files(request):
     # get the list of filenames from the /files directory
     filenames = os.listdir("files")
-    # filter the list of filenames to include only image files
-    image_filenames = [f for f in filenames if f.endswith(".png") or f.endswith(".jpg") or f.endswith(".jpeg")]
+    # return the list of filenames as a JSON response
+    return response.json({"files": filenames})
 
-    # create the HTML for displaying the image files
-    html = "<html><head><style>img { max-width: 10em; max-height: 10em; min-width: 10em; max-width: 10em; }</style></head><body>"
-    # add a form to the HTML that allows users to upload files
-    html += "<form method='POST' enctype='multipart/form-data'>"
-    html += "<input type='file' name='file' accept='.png, .jpg, .jpeg'>"
-    html += "<input type='submit' value='Upload'>"
-    html += "</form>"
-    # add a form to the HTML that allows users to delete all files
-    html += "<form method='POST' action='/delete'>"
-    html += "<input type='submit' value='Delete All Files'>"
-    html += "</form>"
-    for filename in image_filenames:
-        # create an <img> tag for each image file
-        img_tag = "<img src='data:image/png;base64,{}' alt='{}'>"
-        # import the base64 module
-        # encode the file content as base64 using aiofiles
-        file_path = os.path.join("files", filename)
-        async with aiofiles.open(file_path, "rb") as f:
-            file_content = base64.b64encode(await f.read()).decode("utf-8")
-        # format the img tag with the base64-encoded file content and the filename
-        img_tag = img_tag.format(file_content, filename)
-        # add the img tag to the HTML
-        html += img_tag
-    html += "</body></html>"
 
-    # return the HTML as the response
-    return html_response(html)
-
-@app.route("/delete", methods=["POST"])
-async def delete_files(request):
-    # get the list of filenames from the /files directory
-    filenames = os.listdir("files")
-
-    # delete all files in the /files directory
-    for filename in filenames:
-        file_path = os.path.join("files", filename)
-        os.remove(file_path)
-
-    # redirect to the GET / route
-    return redirect("/")
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8000)
