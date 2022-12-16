@@ -4,8 +4,11 @@ from sanic import Sanic
 from sanic import response
 import aiofiles
 import os
+from sanic_cors import CORS
+
 
 app = Sanic(__name__)
+CORS(app)
 
 
 @app.route("/upload", methods=["POST"])
@@ -23,7 +26,8 @@ async def upload_file(request):
         await f.write(file.body)
 
     # return a JSON response indicating that the file was successfully uploaded
-    return response.json({"success": True})
+    files = os.listdir("files")
+    return response.json({"success": True, "files": files})
 
 
 @app.route("/view/<file_name>")

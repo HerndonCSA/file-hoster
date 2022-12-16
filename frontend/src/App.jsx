@@ -1,34 +1,59 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
+import {useEffect, useState} from 'react'
 import './App.css'
 
-function App() {
-  const [count, setCount] = useState(0)
+const API_URL = 'http://localhost:8000'
 
-  return (
-    <div className="App">
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src="/vite.svg" className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://reactjs.org" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </div>
-  )
+
+function App() {
+    const [files, setFiles] = useState([])
+
+    useEffect(() => {
+        fetch(`${API_URL}/files`)
+            .then(response => response.json())
+            .then(data => {
+                console.log(data['files'])
+                setFiles(data['files'])
+            })
+    }, [])
+
+    return (<div className="App"
+                 onDrop={e => {
+                     e.preventDefault()
+                     const file = e.dataTransfer.files
+                     for (let i = 0; i < file.length; i++) {
+                         const formData = new FormData()
+                         formData.append('file', file[i])
+                         fetch(`${API_URL}/upload`, {
+                             method: 'POST', body: formData
+                         })
+                             .then(response => response.json())
+                             .then(data => {
+                                 console.log(data)
+                                 setFiles(data['files'])
+                             })
+                     }
+
+                 }}
+                 onDragOver={e => e.preventDefault()}
+                 onDragEnter={e => e.preventDefault()}
+                 onDragLeave={e => e.preventDefault()}
+                 onDragEnd={e => e.preventDefault()}
+                 onDragExit={e => e.preventDefault()}
+                 onDragStart={e => e.preventDefault()}
+                 onDrag={e => e.preventDefault()}
+
+
+    >
+        <div className="flex">
+            <h1>Drag an image to upload</h1>
+        </div>
+        <div className="images">
+            {files.map(file => (<div key={file}>
+                <img src={`${API_URL}/view/${file}`} alt={file}/>
+            </div>))}
+        </div>
+    </div>)
 }
+
 
 export default App
