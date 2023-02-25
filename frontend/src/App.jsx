@@ -4,7 +4,7 @@ import DeleteIcon from './assets/delete.svg'
 import DownloadIcon from './assets/download.svg'
 
 
-const API_URL = 'http://localhost:8000'
+const API_URL = 'https://drive-api.hcsa.tech'
 
 
 function App() {
