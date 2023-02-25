@@ -142,7 +142,7 @@ function App() {
                                 </Button>
                                 <Button
                                     onClick={() => {
-                                        navigator.clipboard.writeText(`${API_URL}/view/${file}?embed=true`)
+                                        navigator.clipboard.writeText(`${API_URL}/view/${file["id"]}?embed=true`)
                                     }}
                                 >
                                     Embed
