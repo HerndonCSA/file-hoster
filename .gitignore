@@ -1,4 +1,5 @@
 files/
+file_index.db
 
 # MacOS
 .DS_Store
