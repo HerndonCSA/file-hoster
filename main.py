@@ -110,37 +110,37 @@ async def view_file(request, file_name):
         if file_name.endswith(('.png', '.jpg', '.jpeg')):
             return response.html(
                 f"""
-                        <html>
-                            <head>
-                                <meta content="File Hoster v2" property="og:site_name">
-                                <meta property="og:title" content="{file_name}" />
-                                <meta property="og:image" content="{image_url}" />
-                                <meta name="twitter:card" content="summary_large_image">
-                            </head>
-                            <body>
-                                <img src="{image_url}" />
-                            </body>
-                        </html>
-                        """
+                <html>
+                    <head>
+                        <meta content="File Hoster v2" property="og:site_name">
+                        <meta property="og:title" content="{file_name}" />
+                        <meta property="og:image" content="{image_url}" />
+                        <meta name="twitter:card" content="summary_large_image">
+                    </head>
+                    <body>
+                        <img src="{image_url}" />
+                    </body>
+                </html>
+                """
             )
         # if .mp4, .mov, or .webm, use <meta property="og:video" content="https://example.com/video.mp4">
         elif file_name.endswith(('.mp4', '.mov', '.webm')):
             return response.html(
                 f"""
-                        <html>
-                            <head>
-                <meta name="twitter:title" content="{file_name}">
-                <meta name="twitter:card" content="summary_large_image">
-                <meta property="og:video:url" content="{image_url}">
-                <meta property="og:video:height" content="720">
-                <meta property="og:video:width" content="1280">
-                <meta property="og:type" content="video.other">
-                            </head>
-                            <body>
-                                <video controls src="{image_url}" />
-                            </body>
-                        </html>
-                        """
+                <html>
+                    <head>
+                        <meta name="twitter:title" content="{file_name}">
+                        <meta name="twitter:card" content="summary_large_image">
+                        <meta property="og:video:url" content="{image_url}">
+                        <meta property="og:video:height" content="720">
+                        <meta property="og:video:width" content="1280">
+                        <meta property="og:type" content="video.other">
+                    </head>
+                    <body>
+                        <video controls src="{image_url}" />
+                    </body>
+                </html>
+                """
             )
     # if the "embed" query parameter is not set or is set to "false", return the file data as a response
     return await response.file_stream("files/" + file_name)
