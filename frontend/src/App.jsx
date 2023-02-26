@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import Button from '@mui/material/Button';
 import DeleteIcon from './assets/delete.svg'
 import DownloadIcon from './assets/download.svg'
@@ -8,15 +8,16 @@ import PlayIcon from './assets/play.svg'
 import { motion, AnimatePresence } from 'framer-motion'
 
 
-const API_URL = 'https://drive-api.hcsa.tech'
+const API_URL = 'http://localhost:8000'
 
 
 function App() {
     const [files, setFiles] = useState([])
     const [largeView, setLargeView] = useState(false)
-    const [largeViewImage, setLargeViewImage] = useState("");
+    const [largeViewFile, setLargeViewFile] = useState("");
     const [supportedImageTypes, setSupportedImageTypes] = useState([]);
     const [supportedVideoTypes, setSupportedVideoTypes] = useState([]);
+    const larrgeViewFileRef = useRef(null)
 
     useEffect(() => {
         fetch(`${API_URL}/supported-image-types`)
@@ -137,6 +138,24 @@ function App() {
         }
     }, [])
 
+    // escape to close large view
+    useEffect(() => {
+        const handleEscape = e => {
+            console.log(e.keyCode)
+            if (e.keyCode === 27) {
+                // enable scrolling
+                document.body.style.overflow = "auto"
+                setLargeView(false)
+            }
+        }
+
+        document.addEventListener('keydown', handleEscape)
+
+        return () => {
+            document.removeEventListener('keydown', handleEscape)
+        }
+    }, [])
+
 
 
 
@@ -149,22 +168,26 @@ function App() {
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
+                            onClick={(e) => {
+                                // return if the click was on the image
+                                if (e.target === larrgeViewFileRef.current) {
+                                    return
+                                }
+                                // enable scrolling
+                                document.body.style.overflow = "auto"
+                                setLargeView(false)
+                            }
+                            }
                         >
                             {
-                                supportedImageTypes.includes(largeViewImage.split('.').pop()) ?
-                                    <img src={largeViewImage} alt="large view" onClick={() => {
-                                        // enable scrolling
-                                        document.body.style.overflow = "auto"
-                                        setLargeView(false)
-                                    }
-                                    } />
+                                !supportedVideoTypes.includes("." + largeViewFile.split('.').pop()) ?
+                                    <img src={largeViewFile} alt="large view"
+                                        ref={larrgeViewFileRef}
+                                    />
                                     :
-                                    <video controls src={largeViewImage} alt="large view" onClick={() => {
-                                        // enable scrolling
-                                        document.body.style.overflow = "auto"
-                                        setLargeView(false)
-                                    }
-                                    } />
+                                    <video controls src={largeViewFile} alt="large view"
+                                        ref={larrgeViewFileRef}
+                                    />
                             }
                         </motion.div>
                         : null
@@ -189,7 +212,8 @@ function App() {
                                 // disable scrolling
                                 document.body.style.overflow = "hidden"
                                 setLargeView(true)
-                                setLargeViewImage(`${API_URL}/view/${file["id"]}`)
+                                setLargeViewFile(`${API_URL}/view/${file["id"]}`)
+                                console.log(supportedVideoTypes.includes("." + `${API_URL}/view/${file["id"]}`.split('.').pop()))
                             }}>
                                 {/* if the file is a video, add a play button */}
                                 {supportedVideoTypes.includes("." + file["name"].split('.').pop()) ? <img src={PlayIcon} alt="play" /> : null}
@@ -205,7 +229,7 @@ function App() {
                                 </Button>
                                 <Button
                                     onClick={() => {
-                                        console.log(supportedImageTypes)
+                                        console.log(supportedVideoTypes)
                                         navigator.clipboard.writeText(`${API_URL}/view/${file["id"]}?embed=true`)
                                     }}
                                 >

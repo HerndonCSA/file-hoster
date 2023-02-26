@@ -175,7 +175,7 @@ async def view_file(request, file_name):
                 """
             )
     # if the "embed" query parameter is not set or is set to "false", return the file data as a response
-    return await response.file_stream("files/" + file_name)
+    return await response.file("files/" + file_name)
 
 
 @app.route("/delete/<file_name>", methods=["DELETE"])
