@@ -152,12 +152,12 @@ function App() {
             e.preventDefault()
         }
 
-        document.getElementById("root").addEventListener('drop', handleDrop)
-        document.getElementById("root").addEventListener('dragover', handleDragOver)
+        document.body.addEventListener('drop', handleDrop)
+        document.body.addEventListener('dragover', handleDragOver)
 
         return () => {
-            document.getElementById("root").removeEventListener('drop', handleDrop)
-            document.getElementById("root").removeEventListener('dragover', handleDragOver)
+            window.removeEventListener('drop', handleDrop)
+            window.removeEventListener('dragover', handleDragOver)
         }
     }, [])
 
@@ -207,7 +207,7 @@ function App() {
                                         ref={larrgeViewFileRef}
                                     />
                                     :
-                                    <video src={largeViewFile} alt="large view" controls="true"
+                                    <video src={largeViewFile} alt="large view" controls
                                         ref={larrgeViewFileRef}
                                     />
                             }

@@ -69,7 +69,6 @@ app.register_listener(close, 'after_server_stop')
 
 @app.route("/upload", methods=["POST", "GET"])
 async def upload_file(request):
-    print(request.files)
     # get the file from the request
     file = request.files.get("file")
     file_name = uuid.uuid4().hex
@@ -129,7 +128,6 @@ async def view_file(request, file_name):
                 return await response.file_stream(os.path.join("files", file[1]))
         else:
             file_name = file[2]
-            print("PREVIEW FILE NAME: " + file_name)
     else:
         file_name = file[1]
     if embed:
@@ -175,7 +173,7 @@ async def view_file(request, file_name):
                 """
             )
     # if the "embed" query parameter is not set or is set to "false", return the file data as a response
-    return await response.file("files/" + file_name)
+    return await response.file_stream("files/" + file_name)
 
 
 @app.route("/delete/<file_name>", methods=["DELETE"])
@@ -237,4 +235,4 @@ async def video_file_types(request):
     return response.json({"video_file_types": VIDEO_FILE_TYPES})
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8000, debug=True)
+    app.run(host="0.0.0.0", port=8000)
