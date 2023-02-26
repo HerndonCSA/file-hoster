@@ -185,7 +185,7 @@ function App() {
                                         ref={larrgeViewFileRef}
                                     />
                                     :
-                                    <video controls src={largeViewFile} alt="large view"
+                                    <video src={largeViewFile} alt="large view" controls="true"
                                         ref={larrgeViewFileRef}
                                     />
                             }
