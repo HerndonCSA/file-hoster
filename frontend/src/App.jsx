@@ -8,7 +8,7 @@ import PlayIcon from './assets/play.svg'
 import { motion, AnimatePresence } from 'framer-motion'
 
 
-const API_URL = 'http://localhost:8000'
+const API_URL = 'https://drive-api.hcsa.tech'
 
 
 function App() {
