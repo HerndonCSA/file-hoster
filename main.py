@@ -12,7 +12,38 @@ from sanic_cors import CORS
 
 app = Sanic(__name__)
 CORS(app)
+IMAGE_FILE_TYPES = [
+    ".avif",
+    ".bmp",
+    ".gif",
+    ".ief",
+    ".jpg",
+    ".jpe",
+    ".jpeg",
+    ".heic",
+    ".heif",
+    ".png",
+    ".svg",
+    ".tiff",
+    ".tif",
+    ".ico",
+    ".ras",
+    ".pnm",
+    ".pbm",
+    ".pgm",
+    ".ppm",
+    ".rgb",
+    ".xbm",
+    ".xpm",
+    ".xwd"
+]
 
+VIDEO_FILE_TYPES = [
+    ".mp4",
+    ".m4v",
+    ".mov",
+    ".webm"
+]
 
 @app.listener('before_server_start')
 async def init(application, loop):
@@ -92,7 +123,7 @@ async def view_file(request, file_name):
             # this file type does not have a preview, as it is not a video
             # if the file is an image, return the image, otherwise return a question mark image
 
-            if not file_name.endswith(('.png', '.jpg', '.jpeg', "svg", "gif", "bmp", "webp", "avif", "jfif", "webp")):
+            if not any(file[1].endswith(extension) for extension in IMAGE_FILE_TYPES):
                 return await response.file_stream("./unknown.png")
             else:
                 return await response.file_stream(os.path.join("files", file[1]))
@@ -197,6 +228,13 @@ async def list_files(request):
     # return the list of filenames as a JSON response
     return response.json({"files": [{"id": file[1], "name": file[0]} for file in files]})
 
+@app.route("/supported-image-types")
+async def image_file_types(request):
+    return response.json({"image_file_types": IMAGE_FILE_TYPES})
+
+@app.route("/supported-video-types")
+async def video_file_types(request):
+    return response.json({"video_file_types": VIDEO_FILE_TYPES})
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8000, debug=True)

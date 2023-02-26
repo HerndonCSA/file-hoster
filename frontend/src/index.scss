@@ -38,7 +38,9 @@ body {
 
 	.upload {
 		margin-left: 2em;
-		background-color: grey;
+		background-color: rgb(73, 73, 73);
+		font-family: poppins;
+		font-size: 15px;
 
 		&:hover {
 			background-color: rgb(36, 36, 36);
@@ -61,9 +63,9 @@ body {
 	.file {
 		display: flex;
 		flex-direction: column;
-
-		box-shadow: inset 0 0 0 2px #979797;
-		border-radius: 0.2em;
+		box-shadow: inset 0 0 0 2px #333333;
+		background-image: linear-gradient(rgb(52, 52, 52), rgb(0, 0, 0));
+		border-radius: 0.35em;
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -72,14 +74,15 @@ body {
 		height: 30vh;
 
 		.image {
-			background-image: url("https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/10x10_checkered_board_transparent.svg/1200px-10x10_checkered_board_transparent.svg.png");
+			cursor: pointer;
 			// change size of background image
 			background-size: 100% 100%;
+
 			// lower background image opacity
-			background-color: rgba(0, 0, 0, 0.487);
+
 			padding: 0.5em;
 			width: 100%;
-			height: 80%;
+			height: 110%;
 			display: flex;
 			align-items: center;
 			justify-content: center;
@@ -90,6 +93,12 @@ body {
 				max-height: 100%;
 				object-fit: contain; /* fit the image inside the container */
 			}
+
+			img[alt="play"] {
+				position: absolute;
+				width: 5em;
+				height: 5em;
+			}
 		}
 
 		.controls {
@@ -99,7 +108,8 @@ body {
 			color: white;
 			width: 100%;
 			padding: 0.5em;
-			background-color: #484848;
+			background-color: #0f0f0f;
+			border-radius: 0 0 0.35em 0.35em;
 			display: flex;
 			align-items: center;
 			justify-content: space-between;
@@ -113,6 +123,34 @@ body {
 				}
 			}
 		}
+	}
+}
+
+.large-view {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100vh;
+	background-color: rgba(0, 0, 0, 0.8);
+	z-index: 1000;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 5em;
+
+	img {
+		max-width: 100%;
+		max-height: 100%;
+		object-fit: contain; /* fit the image inside the container */
+		cursor: pointer;
+	}
+
+	video {
+		max-width: 100%;
+		max-height: 100%;
+		object-fit: contain; /* fit the image inside the container */
+		cursor: pointer;
 	}
 }
 

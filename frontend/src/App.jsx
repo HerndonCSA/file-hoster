@@ -2,13 +2,38 @@ import { useEffect, useState } from 'react'
 import Button from '@mui/material/Button';
 import DeleteIcon from './assets/delete.svg'
 import DownloadIcon from './assets/download.svg'
+import PlayIcon from './assets/play.svg'
+
+// import motion from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 
 
-const API_URL = 'https://drive-api.hcsa.tech'
+const API_URL = 'http://localhost:8000'
 
 
 function App() {
     const [files, setFiles] = useState([])
+    const [largeView, setLargeView] = useState(false)
+    const [largeViewImage, setLargeViewImage] = useState("");
+    const [supportedImageTypes, setSupportedImageTypes] = useState([]);
+    const [supportedVideoTypes, setSupportedVideoTypes] = useState([]);
+
+    useEffect(() => {
+        fetch(`${API_URL}/supported-image-types`)
+            .then(response => response.json())
+            .then(data => {
+                console.log(data)
+                setSupportedImageTypes(data['image_file_types'])
+            })
+
+        fetch(`${API_URL}/supported-video-types`)
+            .then(response => response.json())
+            .then(data => {
+                console.log(data)
+                setSupportedVideoTypes(data['video_file_types'])
+            }
+            )
+    }, [])
 
 
     const downloadFile = (file) => {
@@ -117,19 +142,57 @@ function App() {
 
     return (
         <>
+            <AnimatePresence>
+                {
+                    largeView ?
+                        <motion.div className="large-view" key="large-view"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                        >
+                            {
+                                supportedImageTypes.includes(largeViewImage.split('.').pop()) ?
+                                    <img src={largeViewImage} alt="large view" onClick={() => {
+                                        // enable scrolling
+                                        document.body.style.overflow = "auto"
+                                        setLargeView(false)
+                                    }
+                                    } />
+                                    :
+                                    <video controls src={largeViewImage} alt="large view" onClick={() => {
+                                        // enable scrolling
+                                        document.body.style.overflow = "auto"
+                                        setLargeView(false)
+                                    }
+                                    } />
+                            }
+                        </motion.div>
+                        : null
+                }
+            </AnimatePresence>
             <div className="header">
-                <h1>Drag an file</h1>
+                <h1>Drag a file</h1>
                 <h2>or</h2>
                 <Button className="upload" variant='contained'
                     onClick={uploadFile}
-                >Press to upload
+                >UPLOAD
                 </Button>
             </div>
             <div className="files">
                 {files.map(file => {
+                    // console log if the file is a video 
                     return (
                         <div className="file" key={file["id"]}>
-                            <div className="image">
+                            <div className="image" onClick={() => {
+                                // scroll to top
+                                window.scrollTo(0, 0)
+                                // disable scrolling
+                                document.body.style.overflow = "hidden"
+                                setLargeView(true)
+                                setLargeViewImage(`${API_URL}/view/${file["id"]}`)
+                            }}>
+                                {/* if the file is a video, add a play button */}
+                                {supportedVideoTypes.includes("." + file["name"].split('.').pop()) ? <img src={PlayIcon} alt="play" /> : null}
                                 <img src={`${API_URL}/view/${file["id"]}?preview=true`} alt={file} />
                             </div>
                             <div className="controls">
@@ -142,6 +205,7 @@ function App() {
                                 </Button>
                                 <Button
                                     onClick={() => {
+                                        console.log(supportedImageTypes)
                                         navigator.clipboard.writeText(`${API_URL}/view/${file["id"]}?embed=true`)
                                     }}
                                 >
