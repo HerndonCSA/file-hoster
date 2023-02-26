@@ -129,7 +129,7 @@ async def view_file(request, file_name):
                 f"""
                 <html>
                     <head>
-                        <meta name="twitter:title" content="{file_name}">
+                        <meta name="twitter:title" content="{file[0]}">
                         <meta name="twitter:card" content="summary_large_image">
                         <meta property="og:video:url" content="{image_url}">
                         <meta property="og:video:height" content="720">
