@@ -113,7 +113,7 @@ async def view_file(request, file_name):
                 <html>
                     <head>
                         <meta content="File Hoster v2" property="og:site_name">
-                        <meta property="og:title" content="{file_name}" />
+                        <meta property="og:title" content="{file[0]}" />
                         <meta property="og:image" content="{image_url}" />
                         <meta name="twitter:card" content="summary_large_image">
                     </head>
@@ -131,6 +131,7 @@ async def view_file(request, file_name):
                     <head>
                         <meta name="twitter:title" content="{file[0]}">
                         <meta name="twitter:card" content="summary_large_image">
+                        <meta property="og:title" content="{file[0]}" />
                         <meta property="og:video:url" content="{image_url}">
                         <meta property="og:video:height" content="720">
                         <meta property="og:video:width" content="1280">
