@@ -3,12 +3,15 @@ import Button from '@mui/material/Button';
 import DeleteIcon from './assets/delete.svg'
 import DownloadIcon from './assets/download.svg'
 import PlayIcon from './assets/play.svg'
+import Nanobar from "nanobar";
+import axios from 'axios'
+
 
 // import motion from 'framer-motion'
 import { motion, AnimatePresence } from 'framer-motion'
 
 
-const API_URL = 'https://drive-api.hcsa.tech'
+const API_URL = import.meta.env.VITE_API_URL;
 
 
 function App() {
@@ -18,6 +21,14 @@ function App() {
     const [supportedImageTypes, setSupportedImageTypes] = useState([]);
     const [supportedVideoTypes, setSupportedVideoTypes] = useState([]);
     const larrgeViewFileRef = useRef(null)
+
+
+    const loading_bar = useRef();
+
+    useEffect(() => {
+        loading_bar.current = new Nanobar();
+    }, [])
+
 
     useEffect(() => {
         fetch(`${API_URL}/supported-image-types`)
@@ -71,30 +82,37 @@ function App() {
     }
 
 
+
     const uploadFile = () => {
         // upload images from clients file system
-        const input = document.createElement('input')
+        const input = document.createElement('input');
         // only allow images
-        input.setAttribute('type', 'file')
-        input.type = 'file'
-        input.multiple = true
+        input.setAttribute('type', 'file');
+        input.type = 'file';
+        input.multiple = true;
         input.onchange = e => {
-            const files = e.target.files
+            const files = e.target.files;
             for (let i = 0; i < files.length; i++) {
-                const formData = new FormData()
-                formData.append('file', files[i])
-                fetch(`${API_URL}/upload`, {
-                    method: 'POST', body: formData
+                const formData = new FormData();
+                formData.append('file', files[i]);
+                axios.post(`${API_URL}/upload`, formData, {
+                    onUploadProgress: (progressEvent) => {
+                        const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                        console.log(percentCompleted);
+                        loading_bar.current.go(percentCompleted);
+                    }
                 })
-                    .then(response => response.json())
-                    .then(data => {
-                        console.log(data)
-                        setFiles(data['files'])
+                    .then(response => {
+                        console.log(response.data);
+                        setFiles(response.data['files']);
                     })
+                    .catch(error => {
+                        console.log(error);
+                    });
             }
-        }
-        input.click()
-    }
+        };
+        input.click();
+    };
 
 
     useEffect(() => {
@@ -109,22 +127,27 @@ function App() {
     useEffect(() => {
         console.log("adding event listeners")
         const handleDrop = e => {
-            e.preventDefault()
-            const file = e.dataTransfer.files
+            e.preventDefault();
+            const file = e.dataTransfer.files;
             for (let i = 0; i < file.length; i++) {
-                const formData = new FormData()
-                formData.append('file', file[i])
-                fetch(`${API_URL}/upload`, {
-                    method: 'POST', body: formData
+                const formData = new FormData();
+                formData.append('file', file[i]);
+                axios.post(`${API_URL}/upload`, formData, {
+                    onUploadProgress: (progressEvent) => {
+                        const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                        console.log(percentCompleted);
+                        loading_bar.current.go(percentCompleted);
+                    }
                 })
-                    .then(response => response.json())
-                    .then(data => {
-                        console.log(data)
-                        setFiles(data['files'])
+                    .then(response => {
+                        console.log(response.data);
+                        setFiles(response.data['files']);
                     })
+                    .catch(error => {
+                        console.log(error);
+                    });
             }
-        }
-
+        };
         const handleDragOver = e => {
             e.preventDefault()
         }
@@ -141,7 +164,6 @@ function App() {
     // escape to close large view
     useEffect(() => {
         const handleEscape = e => {
-            console.log(e.keyCode)
             if (e.keyCode === 27) {
                 // enable scrolling
                 document.body.style.overflow = "auto"
