@@ -77,7 +77,7 @@ function App() {
             .then(response => response.json())
             .then(data => {
                 console.log(data)
-                setFiles(data['files'])
+                setFiles(data['files'].reverse())
                 console.log("deleted file " + file + " " + (data["files"].includes(file) === false))
             })
     }
@@ -114,7 +114,7 @@ function App() {
                 })
                     .then(response => {
                         console.log(response.data);
-                        setFiles(response.data['files']);
+                        setFiles(response.data['files'].reverse());
                     })
                     .catch(error => {
                         console.log(error);
@@ -151,7 +151,7 @@ function App() {
                 })
                     .then(response => {
                         console.log(response.data);
-                        setFiles(response.data['files']);
+                        setFiles(response.data['files'].reverse());
                     })
                     .catch(error => {
                         console.log(error);
