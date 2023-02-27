@@ -5,9 +5,6 @@ import DownloadIcon from './assets/download.svg'
 import PlayIcon from './assets/play.svg'
 import Nanobar from "nanobar";
 import axios from 'axios'
-
-
-// import motion from 'framer-motion'
 import { motion, AnimatePresence } from 'framer-motion'
 
 
@@ -20,7 +17,8 @@ function App() {
     const [largeViewFile, setLargeViewFile] = useState("");
     const [supportedImageTypes, setSupportedImageTypes] = useState([]);
     const [supportedVideoTypes, setSupportedVideoTypes] = useState([]);
-    const larrgeViewFileRef = useRef(null)
+    const larrgeViewFileRef = useRef(null);
+    const playerRef = useRef(null);
 
 
     const loading_bar = useRef();
@@ -28,6 +26,9 @@ function App() {
     useEffect(() => {
         loading_bar.current = new Nanobar();
     }, [])
+
+    // use effect to create the player
+
 
 
     useEffect(() => {
@@ -79,6 +80,15 @@ function App() {
                 setFiles(data['files'])
                 console.log("deleted file " + file + " " + (data["files"].includes(file) === false))
             })
+    }
+
+
+    const convertToBase64 = (str) => {
+        return btoa(
+            encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function toSolidBytes(match, p1) {
+                return String.fromCharCode('0x' + p1);
+            })
+        );
     }
 
 
@@ -207,8 +217,10 @@ function App() {
                                         ref={larrgeViewFileRef}
                                     />
                                     :
-                                    <video src={largeViewFile} alt="large view" controls
+                                    <iframe src={`https://plyr.link/p/player.html#${convertToBase64(largeViewFile)}`} alt="large view"
+                                        style={{ width: "100%", height: "100%" }}
                                         ref={larrgeViewFileRef}
+                                        className="plyr"
                                     />
                             }
                         </motion.div>
@@ -235,7 +247,7 @@ function App() {
                                 document.body.style.overflow = "hidden"
                                 setLargeView(true)
                                 setLargeViewFile(`${API_URL}/view/${file["id"]}`)
-                                console.log(supportedVideoTypes.includes("." + `${API_URL}/view/${file["id"]}`.split('.').pop()))
+                                let video = supportedVideoTypes.includes("." + `${API_URL}/view/${file["id"]}`.split('.').pop());
                             }}>
                                 {/* if the file is a video, add a play button */}
                                 {supportedVideoTypes.includes("." + file["name"].split('.').pop()) ? <img src={PlayIcon} alt="play" /> : null}
