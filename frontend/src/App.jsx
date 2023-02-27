@@ -130,7 +130,7 @@ function App() {
             .then(response => response.json())
             .then(data => {
                 console.log(data['files'])
-                setFiles(data['files'])
+                setFiles(data['files'].reverse())
             })
     }, [])
 
