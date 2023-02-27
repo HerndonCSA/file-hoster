@@ -221,6 +221,9 @@ function App() {
                                         style={{ width: "100%", height: "100%" }}
                                         ref={larrgeViewFileRef}
                                         className="plyr"
+                                        allowFullScreen
+                                        allowtransparency
+                                        allow="autoplay"
                                     />
                             }
                         </motion.div>
