@@ -17,14 +17,30 @@ function App() {
     const [largeViewFile, setLargeViewFile] = useState("");
     const [supportedImageTypes, setSupportedImageTypes] = useState([]);
     const [supportedVideoTypes, setSupportedVideoTypes] = useState([]);
+    const [storageinfo, setStorageInfo] = useState({ "total": 0, "used": 0, "free": 0 });
     const larrgeViewFileRef = useRef(null);
     const playerRef = useRef(null);
+
+    function bytesToGB(bytes) {
+        return (bytes / 1024 / 1024 / 1024).toFixed(2);
+    }
 
 
     const loading_bar = useRef();
 
     useEffect(() => {
         loading_bar.current = new Nanobar();
+    }, [])
+
+
+    useEffect(() => {
+        // get storage info
+        fetch(`${API_URL}/storage`)
+            .then(response => response.json())
+            .then(data => {
+                console.log(data)
+                setStorageInfo(data)
+            })
     }, [])
 
     // use effect to create the player
@@ -279,6 +295,9 @@ function App() {
 
 
 
+            </div>
+            <div className="footer">
+                Storage Information: Total {bytesToGB(storageinfo["total"])} GB, Used {bytesToGB(storageinfo["used"])} GB, Free {bytesToGB(storageinfo["free"])} GB
             </div>
         </>)
 }

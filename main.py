@@ -1,4 +1,5 @@
 import mimetypes
+import shutil
 
 from sanic import Sanic
 from sanic import response
@@ -233,6 +234,13 @@ async def image_file_types(request):
 @app.route("/supported-video-types")
 async def video_file_types(request):
     return response.json({"video_file_types": VIDEO_FILE_TYPES})
+
+@app.route("/storage")
+async def storage(request):
+    # get the total storage space
+    total, used, free = shutil.disk_usage("/")
+    # return the storage space as a JSON response
+    return response.json({"total": total, "used": used, "free": free}) # these values are in bytes
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8000)
