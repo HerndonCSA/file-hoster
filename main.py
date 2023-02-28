@@ -137,7 +137,7 @@ async def view_file(request, file_name):
         # to link to the file, use the /view/<file_name> endpoint without the "embed" query parameter
 
         # if .png, .jpg, or .jpeg, use <meta property="og:image" content="https://example.com/image.png">
-        if file_name.endswith(('.png', '.jpg', '.jpeg')):
+        if any(file_name.endswith(extension) for extension in IMAGE_FILE_TYPES):
             return response.html(
                 f"""
                 <html>
@@ -154,7 +154,7 @@ async def view_file(request, file_name):
                 """
             )
         # if .mp4, .mov, or .webm, use <meta property="og:video" content="https://example.com/video.mp4">
-        elif file_name.endswith(('.mp4', '.mov', '.webm')):
+        elif any(file_name.endswith(extension) for extension in VIDEO_FILE_TYPES):
             return response.html(
                 f"""
                 <html>
