@@ -46,6 +46,7 @@ VIDEO_FILE_TYPES = [
     ".webm"
 ]
 
+
 @app.listener('before_server_start')
 async def init(application, loop):
     application.ctx.db = await aiosqlite.connect('file_index.db', loop=loop)
@@ -64,17 +65,13 @@ async def close(application, _):
     await application.ctx.db.close()
 
 
-app.register_listener(init, 'before_server_start')
-app.register_listener(close, 'after_server_stop')
-
-
 @app.route("/upload", methods=["POST", "GET"])
 async def upload_file(request):
     # get the file from the request
     file = request.files.get("file")
-    file_name = uuid.uuid4().hex
+    file_id = uuid.uuid4().hex
     # path of file will be uuid and extension
-    file_path = os.path.join("files", file_name + mimetypes.guess_extension(file.type))
+    file_path = os.path.join("files", file_id)
     if not os.path.exists("files"):
         os.makedirs("files")
 
@@ -83,15 +80,15 @@ async def upload_file(request):
         await f.write(file.body)
 
     # if the file is a video, create a preview image
-    if mimetypes.guess_type(file_path)[0].startswith('video'):
+    if any(file.name.endswith(extension) for extension in VIDEO_FILE_TYPES):
         subprocess.run(['ffmpeg', '-i', file_path, '-ss', '00:00:01.000', '-vframes', '1', file_path + '.jpg'])
         await app.ctx.db.execute('''
             INSERT INTO file_index (name, id, preview) VALUES (?, ?, ?)
-        ''', (file.name, file_path.replace('files/', ''), file_path.replace('files/', '') + '.jpg'))
+        ''', (file.name.replace("%20", " "), file_path.replace('files/', ''), file_path.replace('files/', '') + '.jpg'))
     else:
         await app.ctx.db.execute('''
             INSERT INTO file_index (name, id) VALUES (?, ?)
-        ''', (file.name, file_path.replace('files/', '')))
+        ''', (file.name.replace("%20", " "), file_path.replace('files/', '')))
     await app.ctx.db.commit()
 
     # return a JSON response indicating that the file was successfully uploaded, and a list of all files from the
@@ -100,13 +97,17 @@ async def upload_file(request):
         SELECT * FROM file_index
     ''')
     files = await files.fetchall()
-    return response.json({"success": True, "files": [{"id": file[1], "name": file[0]} for file in files]})
+    return response.json({"success": True,
+                          "files": [{"id": file[1], "name": file[0]} for file in files],
+                          "uploaded-file-id": file_id})
 
 
-@app.route("/view/<file_name>")
-async def view_file(request, file_name):
-    # remove %20 from file_name
-    file_name = file_name.replace("%20", " ")
+@app.route("/view/<file_id>")
+async def view_file(request, file_id):
+    # remove .whatever from the end of the file name
+    file_id = file_id.split(".")[0]
+
+
     # check if the "embed" query parameter is set to "true"
     embed = request.args.get("embed", "false") == "true"
     preview = request.args.get("preview", "false") == "true"
@@ -114,7 +115,7 @@ async def view_file(request, file_name):
     # get from database
     file = await app.ctx.db.execute('''
         SELECT * FROM file_index WHERE id = ?
-    ''', (file_name,))
+    ''', (file_id,))
     file = await file.fetchone()
     if file is None:
         return response.json({"success": False, "error": "File not found"})
@@ -123,7 +124,7 @@ async def view_file(request, file_name):
             # this file type does not have a preview, as it is not a video
             # if the file is an image, return the image, otherwise return a question mark image
 
-            if not any(file[1].endswith(extension) for extension in IMAGE_FILE_TYPES):
+            if not any(file[0].endswith(extension) for extension in IMAGE_FILE_TYPES):
                 return await response.file_stream("./unknown.png")
             else:
                 return await response.file_stream(os.path.join("files", file[1]))
@@ -132,12 +133,18 @@ async def view_file(request, file_name):
     else:
         file_name = file[1]
     if embed:
+        print("embed returning html")
         image_url = request.url.replace("?embed=true", "")
+
+        # if url doesn't have localhost in it, change it from http to https
+        if "localhost" not in image_url:
+            image_url = image_url.replace("http://", "https://")
+
         # to embed on discord and twitter, send html response with meta tags
         # to link to the file, use the /view/<file_name> endpoint without the "embed" query parameter
 
         # if .png, .jpg, or .jpeg, use <meta property="og:image" content="https://example.com/image.png">
-        if any(file_name.endswith(extension) for extension in IMAGE_FILE_TYPES):
+        if any(file[0].endswith(extension) for extension in IMAGE_FILE_TYPES):
             return response.html(
                 f"""
                 <html>
@@ -154,7 +161,7 @@ async def view_file(request, file_name):
                 """
             )
         # if .mp4, .mov, or .webm, use <meta property="og:video" content="https://example.com/video.mp4">
-        elif any(file_name.endswith(extension) for extension in VIDEO_FILE_TYPES):
+        elif any(file[0].endswith(extension) for extension in VIDEO_FILE_TYPES):
             return response.html(
                 f"""
                 <html>
@@ -162,7 +169,7 @@ async def view_file(request, file_name):
                         <meta name="twitter:title" content="{file[0]}">
                         <meta name="twitter:card" content="summary_large_image">
                         <meta property="og:title" content="{file[0]}" />
-                        <meta property="og:video:url" content="{image_url}">
+                        <meta property="og:video:url" content="{image_url + ".mp4"}" />
                         <meta property="og:video:height" content="720">
                         <meta property="og:video:width" content="1280">
                         <meta property="og:type" content="video.other">
@@ -177,8 +184,8 @@ async def view_file(request, file_name):
     return await response.file_stream("files/" + file_name)
 
 
-@app.route("/delete/<file_name>", methods=["DELETE"])
-async def delete_file(request, file_name):
+@app.route("/delete/<file_id>", methods=["DELETE"])
+async def delete_file(request, file_id):
     # # delete the file from the /files directory
     # # remove %20 from file_name
     # file_name = file_name.replace("%20", " ")
@@ -191,7 +198,7 @@ async def delete_file(request, file_name):
     # get the file from the database
     file = await app.ctx.db.execute('''
         SELECT * FROM file_index WHERE id = ?
-    ''', (file_name,))
+    ''', (file_id,))
     file = await file.fetchone()
     if file is None:
         return response.json({"success": False, "error": "File not found"})
@@ -202,7 +209,7 @@ async def delete_file(request, file_name):
     # delete the file from the database
     await app.ctx.db.execute('''
         DELETE FROM file_index WHERE id = ?
-    ''', (file_name,))
+    ''', (file_id,))
     await app.ctx.db.commit()
     # return a JSON response indicating that the file was successfully deleted
     files = await app.ctx.db.execute('''
@@ -227,20 +234,24 @@ async def list_files(request):
     # return the list of filenames as a JSON response
     return response.json({"files": [{"id": file[1], "name": file[0]} for file in files]})
 
+
 @app.route("/supported-image-types")
 async def image_file_types(request):
     return response.json({"image_file_types": IMAGE_FILE_TYPES})
 
+
 @app.route("/supported-video-types")
 async def video_file_types(request):
     return response.json({"video_file_types": VIDEO_FILE_TYPES})
+
 
 @app.route("/storage")
 async def storage(request):
     # get the total storage space
     total, used, free = shutil.disk_usage("/")
     # return the storage space as a JSON response
-    return response.json({"total": total, "used": used, "free": free}) # these values are in bytes
+    return response.json({"total": total, "used": used, "free": free})  # these values are in bytes
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8000)

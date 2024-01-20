@@ -65,23 +65,16 @@ function App() {
     }, [])
 
 
-    const downloadFile = (file) => {
-        fetch(`${API_URL}/view/${file}`)
+    const downloadFile = (file_id, file_name) => {
+        file_name.replace("%20", " ")
+        fetch(`${API_URL}/view/${file_id}`)
             .then(response => response.blob())
             .then(blob => {
-                const url = window.URL.createObjectURL(blob)
-                const a = document.createElement('a')
-                a.style.display = 'none'
-                // set the href to the blob url
-                a.href = url
-                // set the download attribute to the file name
-                a.setAttribute('download', file)
-                // append the anchor tag to the body
-                document.body.appendChild(a)
-                // click the anchor tag to download the file
-                a.click()
-                // remove the anchor tag from the body
-                document.body.removeChild(a)
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = file_name;
+                a.click();
             })
     }
 
@@ -275,7 +268,7 @@ function App() {
                             <div className="controls">
                                 <p>{file["name"].length > 15 ? file["name"].substring(0, 15) + "..." : file["name"]}</p>
                                 <Button>
-                                    <img src={DownloadIcon} alt="Download" onClick={() => downloadFile(file["id"])} />
+                                    <img src={DownloadIcon} alt="Download" onClick={() => downloadFile(file["id"], file["name"])} />
                                 </Button>
                                 <Button>
                                     <img src={DeleteIcon} alt="Delete" onClick={() => deleteFile(file["id"])} />
