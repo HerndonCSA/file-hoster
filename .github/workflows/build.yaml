@@ -17,10 +17,14 @@ jobs:
         python-version: '3.9'
 
     - name: Install dependencies
-      run: pip install -r requirements.txt
+      run:  |
+        pip install -r requirements.txt
+        pip install uvloop
 
     - name: Navigate to file-watcher directory
-      run: cd file-watcher
+      run:  |
+        ls
+        cd file-watcher
 
     - name: Build macOS Application
       run: |

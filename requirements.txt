@@ -33,7 +33,6 @@ sanic-routing==22.8.0
 six==1.16.0
 ujson==5.7.0
 urllib3==2.1.0
-uvloop==0.17.0
 watchdog==3.0.0
 websockets==10.4
 yarl==1.9.4
