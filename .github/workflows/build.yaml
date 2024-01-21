@@ -49,11 +49,12 @@ jobs:
       run: |
         pyinstaller --onefile --windowed --icon=file-watcher/icon.ico --name "Quick Embed" file-watcher/app.py
 
-    - name: Zip the Windows Application
-      run: Compress-Archive -Path "file-watcher/dist/Quick Embed.exe" -DestinationPath "file-watcher/dist/Quick Embed.zip"
+    - name: Dirrr
+      run: |
+        dir
 
     - name: Upload Windows Application
       uses: actions/upload-artifact@v2
       with:
         name: Quick-Embed-Windows
-        path: file-watcher/dist/"Quick Embed.zip"
+        path: dist/"Quick Embed.exe"
