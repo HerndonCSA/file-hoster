@@ -1,6 +1,6 @@
 from setuptools import setup
 
-APP = ['app.py']
+APP = ['file-watcher/app.py']
 DATA_FILES = []
 OPTIONS = {
     'argv_emulation': False,
