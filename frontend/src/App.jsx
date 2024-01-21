@@ -253,6 +253,12 @@ function App() {
                     return (
                         <div className="file" key={file["id"]}>
                             <div className="image" onClick={() => {
+                                // if its not a video or image, download it
+                                if (!supportedImageTypes.includes("." + file["name"].split('.').pop()) && !supportedVideoTypes.includes("." + file["name"].split('.').pop())) {
+                                    downloadFile(file["id"], file["name"])
+                                    return
+                                }
+
                                 // scroll to top
                                 window.scrollTo(0, 0)
                                 // disable scrolling

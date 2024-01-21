@@ -3,10 +3,9 @@ import json
 import os
 
 import requests
-from PyQt5 import QtCore
 from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtWidgets import QApplication, QSystemTrayIcon, QMenu, QAction, QDialog, QVBoxLayout, QLabel, QLineEdit, \
-    QPushButton, QMessageBox, QFileDialog
+    QPushButton, QMessageBox, QFileDialog, QCheckBox
 from PyQt5.QtGui import QIcon
 from watchdog.observers import Observer
 from folder_watcher import FolderChangeHandler
@@ -41,7 +40,7 @@ class SettingsDialog(QDialog):
         self.api_url_input.textChanged.connect(lambda: self.save_button.setEnabled(True))
 
         # Path button
-        self.path_label = QLabel("Path: " + CONFIG.get('path', 'None'), self)
+        self.path_label = QLabel("Folder to watch path: " + CONFIG.get('path', 'None'), self)
         layout.addWidget(self.path_label)
         self.path_button = QPushButton("Change Path", self)
         self.path_button.clicked.connect(self.select_path)
@@ -94,17 +93,20 @@ class SettingsDialog(QDialog):
 
     def save_settings(self):
         # check if api url is valid
-        if not self.api_url_input.text().startswith("http"):
+        if not self.api_url_input.text().startswith("http") or not self.api_url_input.text().startswith("https"):
+            print("INVALID BECAUSE: not http or https")
             QMessageBox.warning(self, "Invalid API URL", "The API URL is invalid.")
             return
 
         # check if api url is 200
         try:
             response = requests.get(self.api_url_input.text())
-            if response.status_code != 200:
-                QMessageBox.warning(self, "Invalid API URL", "The API URL is invalid.")
-                return
+            # if response.status_code != 200
+            #     print("INVALID BECAUSE: not 200")
+            #     QMessageBox.warning(self, "Invalid API URL", "The API URL is invalid.")
+            #     return
         except Exception as e:
+            print("INVALID BECAUSE: exception")
             QMessageBox.warning(self, "Invalid API URL", "The API URL is invalid.")
             return
 
@@ -112,6 +114,11 @@ class SettingsDialog(QDialog):
         save_config(CONFIG)
         QMessageBox.information(self, "Settings Saved", "The settings have been saved successfully.")
         self.save_button.setEnabled(False)
+
+        # if listener_action is disabled, emable it
+        if not listener_action.isEnabled():
+            listener_action.setEnabled(True)
+            listener_action.setText("Enable Listener")
 
 
 # Function to read config file
@@ -181,7 +188,19 @@ def main():
     read_config()
 
     app = QApplication(sys.argv)
-    trayIcon = QSystemTrayIcon(QIcon('../unknown.png'), app)
+    if not CONFIG.get('path') or not CONFIG.get('api_url'):
+        print("No path or API URL set. Opening settings dialog.")
+        # make folder if not exists
+        if not os.path.exists(get_base_folder()):
+            os.makedirs(get_base_folder())
+            print("Created folder at " + get_base_folder())
+        icon_url = "https://fastupload.io/secure/file/obj3jbOp23DxJ"
+        user_agent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) ' \
+                     'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36'
+        icon = requests.get(icon_url, headers={'User-Agent': user_agent})
+        with open(os.path.join(get_base_folder(), 'icon.png'), 'wb') as file:
+            file.write(icon.content)
+    trayIcon = QSystemTrayIcon(QIcon(get_base_folder() + "/icon.png"), app)
 
     # Create a menu
     menu = QMenu()
@@ -202,12 +221,30 @@ def main():
     menu.addAction(settings_action)
 
     # Add an exit action
-    exitAction = QAction("Exit", app)
+    exitAction = QAction("Quit", app)
     exitAction.triggered.connect(app.quit)
     menu.addAction(exitAction)
 
     trayIcon.setContextMenu(menu)
     trayIcon.show()
+
+    # show dialog if the app has no config file
+
+    if not CONFIG.get('path') or not CONFIG.get('api_url'):
+        print("SHOWING")
+        # open message box for instructions
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Information)
+        msg.setText("Welcome to Quick Embed!")
+        msg.setInformativeText("To get started, click Configure in the system tray/menu bar and configure the app.\n\n"
+                               "On macos, it is normally at the top of the screen."
+                               " On Windows, it is normally at the bottom right of the screen.")
+        msg.setWindowTitle("Welcome to Quick Embed!")
+        msg.setStandardButtons(QMessageBox.Ok)
+        msg.exec_()
+    # launch listener if configured
+    if CONFIG.get('path') and CONFIG.get('api_url'):
+        toggle_listener()
 
     sys.exit(app.exec_())
 

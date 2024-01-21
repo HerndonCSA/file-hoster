@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta content="File Hoster v2" property="og:site_name">
+    <meta property="og:title" content="{{ image_name }}" />
+    <meta property="og:image" content="{{ image_url }}" />
+    <meta name="twitter:card" content="summary_large_image">
+    <title>{file[0]}</title>
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            padding-top: 60px; /* Height of the header */
+            box-sizing: border-box;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background-color: #0d1117;
+            color: #c9d1d9;
+        }
+        header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background-color: #161b22;
+            padding: 10px 20px;
+            text-align: center;
+            z-index: 1000;
+        }
+        .image-name {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+        .download-button {
+            background-color: #238636;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            box-shadow: none;
+            transition: background-color 0.2s;
+        }
+        .download-button:hover {
+            background-color: #2ea043;
+        }
+        main {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow: auto;
+        }
+        img {
+            max-width: 100%;
+            max-height: calc(100vh - 60px); /* Height of the viewport minus the header */
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+            object-fit: contain; /* Keep aspect ratio */
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="image-name">{{ image_name }}</div>
+        <a href="{{ image_url }}" download="{{ image_name }}" class="download-button">Download</a>
+    </header>
+    <main>
+        <img src="{{ image_url }}" alt="{{ image_name }}"/>
+    </main>
+</body>
+</html>

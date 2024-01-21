@@ -8,11 +8,17 @@ import os
 import aiosqlite
 import uuid
 import subprocess
+from jinja2 import Template
+from jinja2 import Environment, FileSystemLoader
+
 
 from sanic_cors import CORS
 
 app = Sanic(__name__)
 CORS(app)
+
+templates_env = Environment(loader=FileSystemLoader('templates'))
+
 IMAGE_FILE_TYPES = [
     ".avif",
     ".bmp",
@@ -84,11 +90,11 @@ async def upload_file(request):
         subprocess.run(['ffmpeg', '-i', file_path, '-ss', '00:00:01.000', '-vframes', '1', file_path + '.jpg'])
         await app.ctx.db.execute('''
             INSERT INTO file_index (name, id, preview) VALUES (?, ?, ?)
-        ''', (file.name.replace("%20", " "), file_path.replace('files/', ''), file_path.replace('files/', '') + '.jpg'))
+        ''', (file.name.replace("%20", " ").replace("%E2%80%AF", " "), file_path.replace('files/', ''), file_path.replace('files/', '') + '.jpg'))
     else:
         await app.ctx.db.execute('''
             INSERT INTO file_index (name, id) VALUES (?, ?)
-        ''', (file.name.replace("%20", " "), file_path.replace('files/', '')))
+        ''', (file.name.replace("%20", " ").replace("%E2%80%AF", " "), file_path.replace('files/', '')))
     await app.ctx.db.commit()
 
     # return a JSON response indicating that the file was successfully uploaded, and a list of all files from the
@@ -134,54 +140,30 @@ async def view_file(request, file_id):
         file_name = file[1]
     if embed:
         print("embed returning html")
-        image_url = request.url.replace("?embed=true", "")
+        file_url = request.url.replace("?embed=true", "")
 
         # if url doesn't have localhost in it, change it from http to https
-        if "localhost" not in image_url:
-            image_url = image_url.replace("http://", "https://")
+        if "localhost" not in file_url:
+            file_url = file_url.replace("http://", "https://")
 
         # to embed on discord and twitter, send html response with meta tags
         # to link to the file, use the /view/<file_name> endpoint without the "embed" query parameter
 
         # if .png, .jpg, or .jpeg, use <meta property="og:image" content="https://example.com/image.png">
         if any(file[0].endswith(extension) for extension in IMAGE_FILE_TYPES):
-            return response.html(
-                f"""
-                <html>
-                    <head>
-                        <meta content="File Hoster v2" property="og:site_name">
-                        <meta property="og:title" content="{file[0]}" />
-                        <meta property="og:image" content="{image_url}" />
-                        <meta name="twitter:card" content="summary_large_image">
-                    </head>
-                    <body>
-                        <img src="{image_url}" />
-                    </body>
-                </html>
-                """
-            )
+            template = templates_env.get_template("image_embed_template.html")
+            return response.html(template.render(image_url=file_url, image_name=file[0]))
         # if .mp4, .mov, or .webm, use <meta property="og:video" content="https://example.com/video.mp4">
         elif any(file[0].endswith(extension) for extension in VIDEO_FILE_TYPES):
-            return response.html(
-                f"""
-                <html>
-                    <head>
-                        <meta name="twitter:title" content="{file[0]}">
-                        <meta name="twitter:card" content="summary_large_image">
-                        <meta property="og:title" content="{file[0]}" />
-                        <meta property="og:video:url" content="{image_url + ".mp4"}" />
-                        <meta property="og:video:height" content="720">
-                        <meta property="og:video:width" content="1280">
-                        <meta property="og:type" content="video.other">
-                    </head>
-                    <body>
-                        <video controls src="{image_url}" />
-                    </body>
-                </html>
-                """
-            )
-    # if the "embed" query parameter is not set or is set to "false", return the file data as a response
-    return await response.file_stream("files/" + file_name)
+            template = templates_env.get_template("video_embed_template.html")
+            return response.html(template.render(video_url=file_url, video_name=file[0]))
+        else:
+            template = templates_env.get_template("other_embed_template.html")
+            return response.html(template.render(file_url=file_url, file_name=file[0]))
+    # if the "embed" query parameter is not set or is set to "false", return the file data as a response but change the name to the original name
+    else:
+        print("not embed returning file")
+        return await response.file_stream(os.path.join("files", file_name), filename=file[0])
 
 
 @app.route("/delete/<file_id>", methods=["DELETE"])
