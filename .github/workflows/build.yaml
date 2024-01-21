@@ -24,6 +24,7 @@ jobs:
 
     - name: Build macOS Application
       run: |
+        ls
         python setup.py py2app
         cd dist
         zip -r "Quick Embed.app.zip" "Quick Embed.app"
@@ -52,6 +53,7 @@ jobs:
 
     - name: Build Windows Application
       run: |
+        dir
         pyinstaller --onefile --windowed --icon=icon.ico --name "Quick Embed" app.py
 
     - name: Zip the Windows Application
