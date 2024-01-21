@@ -18,7 +18,6 @@ MarkupSafe==2.1.4
 modulegraph==0.19.6
 multidict==6.0.4
 packaging==23.0
-py2app==0.28.6
 pyinstaller==6.3.0
 pyinstaller-hooks-contrib==2024.0
 pync==2.0.3
@@ -37,3 +36,5 @@ watchdog==3.0.0
 websockets==10.4
 yarl==1.9.4
 zipp==3.17.0
+pyperclip
+plyer
