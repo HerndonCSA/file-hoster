@@ -5,7 +5,7 @@ DATA_FILES = []
 OPTIONS = {
     'argv_emulation': False,
     'packages': ['PyQt5'],
-    "iconfile": "icon.icns",
+    "iconfile": "file-watcher/icon.icns",
 }
 
 setup(
