@@ -24,13 +24,12 @@ jobs:
     - name: Build macOS Application
       run: |
         python file-watcher/setup.py py2app
-        zip -r "Quick Embed.zip" "file-watcher/dist/Quick Embed.app"
 
     - name: Upload macOS Application
       uses: actions/upload-artifact@v2
       with:
         name: Quick-Embed-macOS-${{ matrix.os }}
-        path: Quick Embed.zip
+        path: dist/Quick Embed.app
 
   build-windows:
     runs-on: windows-latest
@@ -49,12 +48,9 @@ jobs:
       run: |
         pyinstaller --onefile --windowed --icon=file-watcher/icon.ico --name "Quick Embed" file-watcher/app.py
 
-    - name: Zip Windows Application
-      run: |
-        Compress-Archive -Path "file-watcher/dist/Quick Embed.exe" -DestinationPath "Quick Embed.zip"
 
     - name: Upload Windows Application
       uses: actions/upload-artifact@v2
       with:
         name: Quick-Embed-Windows
-        path: Quick Embed.zip
+        path: dist/Quick Embed.exe
