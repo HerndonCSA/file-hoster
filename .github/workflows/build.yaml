@@ -17,21 +17,14 @@ jobs:
         python-version: '3.9'
 
     - name: Install dependencies
-      run:  |
+      run: |
         pip install -r requirements.txt
         pip install uvloop
 
-    - name: Navigate to file-watcher directory
-      run:  |
-        ls
-        cd file-watcher
-
     - name: Build macOS Application
       run: |
-        ls
-        python setup.py py2app
-        cd dist
-        zip -r "Quick Embed.app.zip" "Quick Embed.app"
+        python file-watcher/setup.py py2app
+        zip -r "file-watcher/dist/Quick Embed.app.zip" "file-watcher/dist/Quick Embed.app"
 
     - name: Upload macOS Application
       uses: actions/upload-artifact@v2
@@ -52,16 +45,12 @@ jobs:
     - name: Install dependencies
       run: pip install -r requirements.txt
 
-    - name: Navigate to file-watcher directory
-      run: cd file-watcher
-
     - name: Build Windows Application
       run: |
-        dir
-        pyinstaller --onefile --windowed --icon=icon.ico --name "Quick Embed" app.py
+        pyinstaller --onefile --windowed --icon=file-watcher/icon.ico --name "Quick Embed" file-watcher/app.py
 
     - name: Zip the Windows Application
-      run: Compress-Archive -Path "dist/Quick Embed.exe" -DestinationPath "Quick Embed.zip"
+      run: Compress-Archive -Path "file-watcher/dist/Quick Embed.exe" -DestinationPath "file-watcher/dist/Quick Embed.zip"
 
     - name: Upload Windows Application
       uses: actions/upload-artifact@v2
