@@ -17,6 +17,9 @@ from sanic_cors import CORS
 app = Sanic(__name__)
 CORS(app)
 
+# change max upload size to 5GB
+app.config.REQUEST_MAX_SIZE = 5000000000
+
 templates_env = Environment(loader=FileSystemLoader('templates'))
 
 IMAGE_FILE_TYPES = [

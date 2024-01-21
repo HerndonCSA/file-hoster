@@ -15,6 +15,7 @@ function App() {
     const [files, setFiles] = useState([])
     const [largeView, setLargeView] = useState(false)
     const [largeViewFile, setLargeViewFile] = useState("");
+    const [largeViewIsVideo, setLargeViewIsVideo] = useState(false)
     const [supportedImageTypes, setSupportedImageTypes] = useState([]);
     const [supportedVideoTypes, setSupportedVideoTypes] = useState([]);
     const [storageinfo, setStorageInfo] = useState({ "total": 0, "used": 0, "free": 0 });
@@ -221,7 +222,7 @@ function App() {
                             }
                         >
                             {
-                                !supportedVideoTypes.includes("." + largeViewFile.split('.').pop()) ?
+                                largeViewIsVideo ?
                                     <img src={largeViewFile} alt="large view"
                                         ref={larrgeViewFileRef}
                                     />
@@ -266,6 +267,7 @@ function App() {
                                 setLargeView(true)
                                 setLargeViewFile(`${API_URL}/view/${file["id"]}`)
                                 let video = supportedVideoTypes.includes("." + `${API_URL}/view/${file["id"]}`.split('.').pop());
+                                setLargeViewIsVideo(video)
                             }}>
                                 {/* if the file is a video, add a play button */}
                                 {supportedVideoTypes.includes("." + file["name"].split('.').pop()) ? <img src={PlayIcon} alt="play" /> : null}
