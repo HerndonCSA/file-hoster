@@ -22,8 +22,8 @@ py2app==0.28.6
 pyinstaller==6.3.0
 pyinstaller-hooks-contrib==2024.0
 pync==2.0.3
-PyQt5==5.15.2
-PyQt5-Qt5==5.15.12
+PyQt5
+PyQt5-Qt5
 PyQt5-sip==12.13.0
 python-dateutil==2.8.2
 requests==2.31.0
