@@ -1,4 +1,4 @@
-name: Build and Package Application
+name: Build, Package, and Release Application
 
 on: [push]
 
@@ -9,55 +9,54 @@ jobs:
         os: [macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.9'
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
 
-    - name: Install dependencies
-      run: |
-        pip install -r requirements.txt
-        pip install uvloop
-        pip install py2app
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install uvloop
+          pip install py2app
 
-    - name: Build macOS Application
-      run: |
-        python file-watcher/setup.py py2app
+      - name: Build macOS Application
+        run: |
+          python file-watcher/setup.py py2app
 
-    - name: Upload macOS Application
-      uses: actions/upload-artifact@v2
-      with:
-        name: Quick-Embed-macOS-${{ matrix.os }}
-        path: dist/Quick Embed.app
+      - name: Upload macOS Application
+        uses: actions/upload-artifact@v2
+        with:
+          name: Quick-Embed-macOS-${{ matrix.os }}
+          path: dist/Quick Embed.app
 
   build-windows:
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.9'
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
 
-    - name: Install dependencies
-      run: pip install -r requirements.txt
+      - name: Install dependencies
+        run: pip install -r requirements.txt
 
-    - name: Build Windows Application
-      run: |
-        pyinstaller --onefile --windowed --icon=file-watcher/icon.ico --name "Quick Embed" file-watcher/app.py
+      - name: Build Windows Application
+        run: |
+          pyinstaller --onefile --windowed --icon=file-watcher/icon.ico --name "Quick Embed" file-watcher/app.py
 
-
-    - name: Upload Windows Application
-      uses: actions/upload-artifact@v2
-      with:
-        name: Quick-Embed-Windows
-        path: dist/Quick Embed.exe
+      - name: Upload Windows Application
+        uses: actions/upload-artifact@v2
+        with:
+          name: Quick-Embed-Windows
+          path: dist/Quick Embed.exe
 
   create-release:
-    needs: [ build-macos, build-windows ]
+    needs: [build-macos, build-windows]
     runs-on: ubuntu-latest
     steps:
       - name: Create Release
@@ -71,23 +70,34 @@ jobs:
           draft: false
           prerelease: false
 
-      - name: Upload macOS Application Artifact
+      - name: Download macOS Artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: Quick-Embed-macOS-${{ needs.build-macos.outputs.os }}
+          path: dist
+
+      - name: Download Windows Artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: Quick-Embed-Windows
+          path: dist
+
+      - name: Upload macOS Application to Release
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./dist/Quick Embed.app
-          asset_name: Quick-Embed-macOS-${{ matrix.os }}.zip
+          asset_name: Quick-Embed-macOS.app
           asset_content_type: application/zip
 
-      - name: Upload Windows Application Artifact
+      - name: Upload Windows Application to Release
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./dist/Quick Embed.exe
-          asset_name: Quick-Embed-Windows.zip
+          asset_name: Quick-Embed-Windows.exe
           asset_content_type: application/zip
-
