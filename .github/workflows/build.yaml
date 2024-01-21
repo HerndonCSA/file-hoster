@@ -6,7 +6,7 @@ jobs:
   build-macos:
     strategy:
       matrix:
-        os: [macos-11, macos-latest]
+        os: [macos-latest-xlarge, macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v2
