@@ -1,0 +1,64 @@
+name: Build and Package Application
+
+on: [push]
+
+jobs:
+  build-macos:
+    strategy:
+      matrix:
+        os: [macos-11, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+
+    - name: Install dependencies
+      run: pip install -r requirements.txt
+
+    - name: Navigate to file-watcher directory
+      run: cd file-watcher
+
+    - name: Build macOS Application
+      run: |
+        python setup.py py2app
+        cd dist
+        zip -r "Quick Embed.app.zip" "Quick Embed.app"
+
+    - name: Upload macOS Application
+      uses: actions/upload-artifact@v2
+      with:
+        name: Quick-Embed-macOS-${{ matrix.os }}
+        path: file-watcher/dist/"Quick Embed.app.zip"
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+
+    - name: Install dependencies
+      run: pip install -r requirements.txt
+
+    - name: Navigate to file-watcher directory
+      run: cd file-watcher
+
+    - name: Build Windows Application
+      run: |
+        pyinstaller --onefile --windowed --icon=icon.ico --name "Quick Embed" app.py
+
+    - name: Zip the Windows Application
+      run: Compress-Archive -Path "dist/Quick Embed.exe" -DestinationPath "Quick Embed.zip"
+
+    - name: Upload Windows Application
+      uses: actions/upload-artifact@v2
+      with:
+        name: Quick-Embed-Windows
+        path: file-watcher/dist/"Quick Embed.zip"
