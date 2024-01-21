@@ -6,7 +6,7 @@ jobs:
   build-macos:
     strategy:
       matrix:
-        os: [flyci-macos-large-latest-m1, macos-latest]
+        os: [macos-latest-xlarge, macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v2
