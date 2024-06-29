@@ -5,7 +5,39 @@
 	margin: 0;
 	padding: 0;
 }
+.login-container {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	height: 100vh;
+	background-color: #121212;  // Darker background suitable for dark theme
+  
+	.login-form {
+	  display: flex;
+	  flex-direction: column;
+	  gap: 20px;
+	  width: 300px;
+	  padding: 20px;
+	  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);  // Lighter shadow for dark theme
+	  background: #202020;  // Darker form background
+	  border-radius: 8px;
 
+	  .passwordButton {
+		background-color: #0f0f0f;
+		color: white;
+
+		&:disabled {
+		  background-color: #151515;
+		  color: #666;
+	  }
+	}
+  
+	  .error-message {
+		color: #ff6b6b;  // Lighter red for better visibility on dark background
+	  }
+	}
+  }
+  
 body {
 	background-color: #181818;
 }
