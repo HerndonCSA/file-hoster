@@ -37,7 +37,7 @@ function Root() {
         fetch(API_URL, {
           method: 'GET',
           headers: {
-            'Authorization': password,
+            'authorization': password,
           },
         })
         .then(response => {
