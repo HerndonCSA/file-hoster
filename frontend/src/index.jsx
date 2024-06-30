@@ -34,10 +34,12 @@ function Root() {
     const verifyPassword = () => {
         setLoading(true);
         setButtonText('Verifying...');  // Change button text to indicate loading
+        console.log(password)
         fetch(API_URL, {
           method: 'GET',
           headers: {
             'authorization': password,
+            "Accept": "application/json",
           },
         })
         .then(response => {
